@@ -1,0 +1,21 @@
+{
+     "posts": [
+          {
+               "description":"This is 1st photo",
+               "image":"https://picsum.photos/200/400",
+               "title":"ABC"
+          },
+          {
+               "description":"This is 2nd photo",
+               "image":"https://picsum.photos/234/400",
+               "title":"PQR",
+               "date":"9-July-2023"
+          },
+          {
+               "description":"This is 1st photo",
+               "image":"https://picsum.photos/235/400",
+               "title":"KLM"
+               }
+
+     ]
+}
