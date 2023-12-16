@@ -3,19 +3,14 @@ const express = require('express');
 const router = express.Router();
 const postController = require('../controller/postController');
 
-router.param('id', (req, res, next, val) => {
-  console.log(`value of id is ${val}`);
-  next();
-});
-
 router
   .route('/')
   .get(postController.getAllPosts)
-  .post(postController.checkBody, postController.createPost);
+  .post(postController.createPost);
 
 router
   .route('/:id')
-  .get(postController.getOnepost)
+  .get(postController.getPost)
   .patch(postController.updatePost)
   .delete(postController.deletePost);
 
