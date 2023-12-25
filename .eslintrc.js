@@ -20,6 +20,5 @@ module.exports = {
     'no-underscore-dangle': ['warn', { allow: ['_id'] }],
     'prefer-destructuring': 'warn',
     'no-param-reassign': 'warn',
-    omitLastInOneLineBlock: true,
   },
-}
+};
