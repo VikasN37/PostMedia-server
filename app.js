@@ -3,6 +3,7 @@ const express = require('express');
 const AppError = require('./utils/appError');
 const globalErrorController = require('./controller/errorController');
 const postRouter = require('./routes/postRouter');
+const userRouter = require('./routes/userRouter');
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/v1/posts', postRouter);
+app.use('/api/v1/users', userRouter);
 
 app.all('*', (req, res, next) => {
   next(
