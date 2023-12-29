@@ -3,7 +3,7 @@ const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 
 exports.getAllUser = catchAsync(async (req, res) => {
-  const users = await User.find({}).select('-__v');
+  const users = await User.find().select('-__v');
   res.status(200).json({
     status: 'success',
     data: {

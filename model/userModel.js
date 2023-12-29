@@ -1,3 +1,4 @@
+/* eslint-disable func-names */
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcrypt');
@@ -15,6 +16,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Password is required'],
     minlength: [8, 'Password should have minimum 8 characters'],
+    select: false,
   },
   confirmPassword: {
     type: String,
@@ -48,6 +50,14 @@ userSchema.pre('save', async function (next) {
   this.confirmPassword = undefined;
   next();
 });
+
+userSchema.methods.correctPassword = async function (
+  enteredPassword,
+  userPassword
+) {
+  const isCorrect = await bcrypt.compare(enteredPassword, userPassword);
+  return isCorrect;
+};
 
 const User = mongoose.model('User', userSchema);
 
