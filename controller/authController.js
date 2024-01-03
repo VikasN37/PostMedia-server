@@ -14,6 +14,32 @@ const generateToken = (id) => {
   });
 };
 
+const createSendToken = (statusCode, user, res) => {
+  const token = generateToken(user._id);
+
+  const cookieOptions = {
+    // !!------------issue in expiration date of cookie
+
+    expires: new Date(
+      Date.now() + process.env.COOKIE_EXPIRES * 24 * 60 * 60 * 1000
+    ),
+
+    httpOnly: true,
+  };
+  if (process.env.NODE_ENV === 'production') {
+    cookieOptions.secure = true;
+  }
+  res.cookie('jwt', token, cookieOptions);
+  user.password = undefined;
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+      user,
+    },
+  });
+};
+
 exports.signup = catchAsync(async (req, res) => {
   const newUser = await User.create({
     name: req.body.name,
@@ -23,18 +49,8 @@ exports.signup = catchAsync(async (req, res) => {
     confirmPassword: req.body.confirmPassword,
     passwordChangedAt: req.body.passwordChangedAt,
   });
-
-  const token = generateToken(newUser._id);
-
-  res.status(201).json({
-    status: 'success',
-    token,
-    data: {
-      user: newUser,
-    },
-  });
+  createSendToken(201, newUser, res);
 });
-
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -48,14 +64,13 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!user || !correct) {
     return next(new AppError(401, 'Incorrect Email or Password'));
   }
-  const token = generateToken(user._id);
 
+  const token = generateToken(user._id);
   res.status(200).json({
     status: 'success',
     token,
   });
 });
-
 exports.protect = catchAsync(async (req, res, next) => {
   let token;
   // checking if token is there
@@ -91,9 +106,8 @@ exports.protect = catchAsync(async (req, res, next) => {
   //     new AppError(401, 'Recently password change detected. Please login again')
   //   );
   // }
-
   req.user = currUser;
-  return next();
+  next();
 });
 
 exports.forgotPassword = catchAsync(async (req, res, next) => {
@@ -125,7 +139,6 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
       message: 'Token successfully sent to email',
     });
   } catch (err) {
-    console.log(err);
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save({ validateBeforeSave: false });
@@ -164,10 +177,24 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   // updating passwordChangedPropery
 
   // sending login token
-  const token = generateToken(user._id);
+  createSendToken(200, user, res);
+});
 
-  res.status(200).json({
-    status: 'success',
-    token,
-  });
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.user.id).select('+password');
+
+  const correct = await user.correctPassword(
+    req.body.currentPassword,
+    user.password
+  );
+
+  if (!correct) {
+    return next(new AppError(401, 'Wrong password !'));
+  }
+
+  user.password = req.body.password;
+  user.confirmPassword = req.body.confirmPassword;
+  await user.save();
+
+  createSendToken(201, user, res);
 });
