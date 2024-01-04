@@ -22,18 +22,18 @@ exports.getAllUser = catchAsync(async (req, res) => {
   });
 });
 
-// exports.getUser = catchAsync(async (req, res, next) => {
-//   const user = await User.findById(req.params.id);
-//   if (!user) {
-//     return next(new AppError(404, 'No user found with given id'));
-//   }
-//   res.status(200).json({
-//     status: 'success',
-//     data: {
-//       user,
-//     },
-//   });
-// });
+exports.getUser = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    return next(new AppError(404, 'No user found with given id'));
+  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user,
+    },
+  });
+});
 
 // exports.updateUser = catchAsync(async (req, res, next) => {
 //   const user = await User.findByIdAndUpdate(req.params.id, req.body, {
@@ -70,7 +70,8 @@ exports.updateUser = catchAsync(async (req, res, next) => {
     'name',
     'email',
     'photo',
-    'username'
+    'username',
+    'posts'
   );
   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
     new: true,

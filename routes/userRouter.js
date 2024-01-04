@@ -20,4 +20,9 @@ router
   .patch(authController.protect, userController.updateUser)
   .delete(authController.protect, userController.deleteUser);
 
+router
+  .route('/:id')
+  .get(authController.protect, userController.getUser)
+  .patch(authController.protect, userController.updateUser);
+
 module.exports = router;

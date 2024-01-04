@@ -4,48 +4,56 @@ const crypto = require('crypto');
 const validator = require('validator');
 const bcrypt = require('bcrypt');
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'Name is required'],
-  },
-  username: {
-    type: String,
-    required: [true, 'Username is required'],
-  },
-  password: {
-    type: String,
-    required: [true, 'Password is required'],
-    minlength: [8, 'Password should have minimum 8 characters'],
-    select: false,
-  },
-  confirmPassword: {
-    type: String,
-    required: [true, 'Confirmation of password is required'],
-    validate: {
-      // eslint-disable-next-line func-names, object-shorthand
-      validator: function (elm) {
-        return elm === this.password;
-      },
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'Name is required'],
     },
-    message: 'Password do not match',
-  },
-  photo: {
-    type: String,
-    default: 'abc',
-  },
-  email: {
-    type: String,
-    required: [true, 'Email is required'],
-    unique: true,
-    lowercase: true,
-    validate: [validator.isEmail, 'Please provide valid email address'],
+    username: {
+      type: String,
+      required: [true, 'Username is required'],
+    },
+    password: {
+      type: String,
+      required: [true, 'Password is required'],
+      minlength: [8, 'Password should have minimum 8 characters'],
+      select: false,
+    },
+    confirmPassword: {
+      type: String,
+      required: [true, 'Confirmation of password is required'],
+      validate: {
+        // eslint-disable-next-line func-names, object-shorthand
+        validator: function (elm) {
+          return elm === this.password;
+        },
+      },
+      message: 'Password do not match',
+    },
+    photo: {
+      type: String,
+      default: 'abc',
+    },
+    email: {
+      type: String,
+      required: [true, 'Email is required'],
+      unique: true,
+      lowercase: true,
+      validate: [validator.isEmail, 'Please provide valid email address'],
+    },
+    passwordChangedAt: Date,
+    passwordResetToken: { type: String },
+    passwordResetExpires: Date,
+
+    posts: [{ type: mongoose.Schema.ObjectId, ref: 'Post' }],
   },
 
-  passwordChangedAt: Date,
-  passwordResetToken: { type: String },
-  passwordResetExpires: Date,
-});
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
 
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
@@ -60,6 +68,15 @@ userSchema.pre('save', function (next) {
   if (!this.isModified('password') || this.isNew) return next();
 
   this.passwordChangedAt = Date.now() - 1000;
+  next();
+});
+
+// populating every tour that uses find
+userSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'posts',
+    select: '-__v',
+  });
   next();
 });
 

@@ -29,7 +29,13 @@ exports.getPost = catchAsync(async (req, res, next) => {
 });
 
 exports.createPost = catchAsync(async (req, res, next) => {
-  const newPost = await Post.create(req.body);
+  const newPost = await Post.create({
+    location: req.body.location,
+    date: req.body.date,
+    image: req.body.image,
+    caption: req.body.caption,
+    liked: req.body.liked,
+  });
   res.status(200).json({
     status: 'success',
     data: {
