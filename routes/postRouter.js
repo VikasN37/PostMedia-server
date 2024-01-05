@@ -15,4 +15,9 @@ router
   .patch(authController.protect, postController.updatePost)
   .delete(authController.protect, postController.deletePost);
 
+router
+  .route('/:userId')
+  .post(authController.protect, postController.createPostByuser)
+  .get(authController.protect, postController.getUserPosts);
+
 module.exports = router;
