@@ -42,9 +42,10 @@ const userSchema = new mongoose.Schema(
       unique: [true, 'Username should be unique'],
     },
 
-    photo: {
+    profilePhoto: {
       type: String,
-      default: 'abc',
+      default:
+        'https://i.pinimg.com/originals/0d/64/98/0d64989794b1a4c9d89bff571d3d5842.jpg',
     },
 
     passwordChangedAt: {

@@ -15,14 +15,20 @@ router
 router.route('/forgotPassword').post(authController.forgotPassword)
 router.route('/resetPassword/:token').patch(authController.resetPassword)
 
+router.use(authController.protect)
+
 router
   .route('/')
   .get(userController.getAllUser)
-  .delete(authController.protect, userController.deleteUser)
+  .delete(userController.deleteUser)
 
 router
   .route('/:id')
-  .get(authController.protect, userController.getUser)
-  .patch(authController.protect, userController.updateUser)
+  .get(userController.getUser)
+  .patch(
+    userController.uploadProfilePhoto,
+    userController.resizeImage,
+    userController.updateUser
+  )
 
 module.exports = router
