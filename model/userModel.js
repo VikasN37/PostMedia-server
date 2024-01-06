@@ -83,7 +83,7 @@ userSchema.pre('save', function (next) {
   next()
 })
 
-// populating every tour that uses find
+// populating every posts that uses find
 userSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'posts',
