@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken')
 const User = require('../model/userModel')
 const catchAsync = require('../utils/catchAsync')
 const AppError = require('../utils/appError')
-const sendEmail = require('../utils/email')
+const Email = require('../utils/email')
 const mongoose = require('mongoose')
 
 const generateToken = (id) => {
@@ -51,6 +51,8 @@ exports.signup = catchAsync(async (req, res) => {
     username: req.body.username,
     confirmPassword: req.body.confirmPassword,
   })
+
+  await new Email(newUser).sendWelcome()
 
   createSendToken(201, newUser.id, res)
 })
@@ -137,19 +139,12 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   const resetToken = user.createPasswordResetToken()
   await user.save({ validateBeforeSave: false })
 
-  const resetURL = `${req.protocol}://${req.get(
-    'host'
-  )}/api/v1/users/resetPassword/${resetToken}`
-
-  const message = `Forgot your password. Send a patch request containing new password and confirm password to the link : ${resetURL}. If not forgot password then kindly ignore it.`
-
   try {
-    await sendEmail({
-      email: user.email,
-      subject: 'Your password reset token valid for 10 minutes',
-      message,
-    })
+    const resetURL = `${req.protocol}://${req.get(
+      'host'
+    )}/api/v1/users/resetPassword/${resetToken}`
 
+    await new Email(user, resetURL).sendPasswordReset()
     res.status(200).json({
       status: 'success',
       message: 'Token successfully sent to email',

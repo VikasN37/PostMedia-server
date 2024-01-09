@@ -4,10 +4,17 @@ const router = express.Router({ mergeParams: true })
 const postController = require('../controller/postController')
 const authController = require('../controller/authController')
 
+router.use(authController.protect)
+
 router
   .route('/')
-  .post(authController.protect, postController.createPost)
-  .get(authController.protect, postController.getPosts)
+  .post(
+    // authController.protect,
+    postController.uploadPhoto,
+    postController.resizeImage,
+    postController.createPost
+  )
+  .get(postController.getPosts)
 
 // router
 //   .route('/')
@@ -16,7 +23,7 @@ router
 
 router
   .route('/:id')
-  .patch(authController.protect, postController.updatePost)
-  .delete(authController.protect, postController.deletePost)
+  .patch(postController.updatePost)
+  .delete(postController.deletePost)
 
 module.exports = router

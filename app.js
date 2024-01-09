@@ -9,11 +9,17 @@ const globalErrorController = require('./controller/errorController')
 const postRouter = require('./routes/postRouter')
 const userRouter = require('./routes/userRouter')
 const AppError = require('./utils/appError')
+const cors = require('cors')
 
 const app = express()
 
-// Global middlewares
+const corsOptions = {
+  origin: 'http://localhost:5173',
+  optionsSuccessStatus: 200,
+}
 
+app.use(cors(corsOptions))
+// Global middlewares
 // for security headers
 app.use(helmet())
 
