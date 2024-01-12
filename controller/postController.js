@@ -7,16 +7,6 @@ const User = require('../model/userModel')
 const multer = require('multer')
 const sharp = require('sharp')
 
-const filterObj = (obj, ...allowedFields) => {
-  const newObj = {}
-  Object.keys(obj).forEach((el) => {
-    if (allowedFields.includes(el)) {
-      newObj[el] = obj[el]
-    }
-  })
-  return newObj
-}
-
 const multerStorage = multer.memoryStorage()
 
 const multerFilter = (req, file, cb) => {
@@ -36,17 +26,18 @@ exports.resizeImage = catchAsync(async (req, res, next) => {
   if (!req.file) {
     return next()
   }
+  console.log('resizing')
   req.file.filename = `post-${req.user.id}-${Date.now()}.jpeg`
 
   await sharp(req.file.buffer)
     .resize({
-      width: 500,
-      height: 600,
-      fit: sharp.fit.contain,
+      width: 600,
+      height: 700,
+      fit: sharp.fit.fill,
     })
     .toFormat('jpeg')
     .jpeg({ quality: 100 })
-    .toFile(`postPhotos/${req.file.filename}`)
+    .toFile(`public/postPhotos/${req.file.filename}`)
 
   next()
 })
@@ -61,9 +52,21 @@ exports.resizeImage = catchAsync(async (req, res, next) => {
 //     },
 //   })
 // })
+// db.posts.find({location:{$regex: "A", $options:'i'} })
+// db.posts.find({location:{$regex: /^A/ } })
 
 exports.getPosts = catchAsync(async (req, res, next) => {
-  const { posts } = req.user
+  let { posts } = req.user
+
+  if (req.query.searchString) {
+    const searchedPosts = await Post.find({
+      location: {
+        $regex: new RegExp(`(?:^|\\W)${req.query.searchString}`, 'i'),
+      },
+    })
+  }
+
+  console.log(posts)
   res.status(200).json({
     status: 'success',
     data: {
@@ -74,13 +77,21 @@ exports.getPosts = catchAsync(async (req, res, next) => {
 
 exports.createPost = catchAsync(async (req, res, next) => {
   const user = req.user
-  const newPost = await Post.create({
+  console.log('Entered createPost')
+
+  const filteredBody = {
     location: req.body.location,
-    date: req.body.date,
-    image: req.file.filename,
     caption: req.body.caption,
-    liked: req.body.liked,
-  })
+  }
+
+  if (req.file) {
+    filteredBody.image = req.file.filename
+    console.log(req.file)
+  }
+
+  console.log(filteredBody)
+
+  const newPost = await Post.create(filteredBody)
   user.posts.unshift(newPost)
   await user.save({ validateBeforeSave: false })
 

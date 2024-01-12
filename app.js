@@ -13,6 +13,8 @@ const cors = require('cors')
 
 const app = express()
 
+app.use(express.static('public'))
+
 const corsOptions = {
   origin: 'http://localhost:5173',
   optionsSuccessStatus: 200,

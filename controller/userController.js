@@ -38,13 +38,13 @@ exports.resizeImage = catchAsync(async (req, res, next) => {
 
   await sharp(req.file.buffer)
     .resize({
-      width: 500,
-      height: 500,
-      fit: sharp.fit.contain,
+      width: 250,
+      height: 250,
+      fit: sharp.fit.outside,
     })
     .toFormat('jpeg')
     .jpeg({ quality: 90 })
-    .toFile(`profilePhotos/${req.file.filename}`)
+    .toFile(`public/profilePhotos/${req.file.filename}`)
 
   next()
 })
@@ -70,10 +70,7 @@ exports.getAllUser = catchAsync(async (req, res) => {
 })
 
 exports.getUser = catchAsync(async (req, res, next) => {
-  const user = await User.findById(req.params.id)
-  if (!user) {
-    return next(new AppError(404, 'No user found with given id'))
-  }
+  const user = req.user
   res.status(200).json({
     status: 'success',
     data: {
@@ -83,7 +80,8 @@ exports.getUser = catchAsync(async (req, res, next) => {
 })
 
 exports.deleteUser = catchAsync(async (req, res, next) => {
-  await User.findByIdAndDelete(req.user.id)
+  const user = req.user
+  await User.findOneAndDelete(user)
 
   res.status(200).json({
     status: 'success',
@@ -95,20 +93,20 @@ exports.updateUser = catchAsync(async (req, res, next) => {
   if (req.body.password || req.body.confirmPassword) {
     return next(new AppError(400, 'This route is not for updating password.'))
   }
-
-  const filteredBody = filterObj(req.body, 'name', 'email', 'username', 'posts')
-  if (req.file) {
-    filteredBody.profilePhoto = req.file.filename
+  const user = req.user
+  if (req.body.name) {
+    user.name = req.body.name
   }
-  const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
-    new: true,
-    runValidators: true,
-  })
 
+  if (req.file) {
+    user.profilePhoto = req.file.filename
+  }
+  await user.save({ validateBeforeSave: false })
+  // console.log(user)
   res.status(200).json({
     status: 'success',
     data: {
-      user: updatedUser,
+      user,
     },
   })
 })

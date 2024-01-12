@@ -19,11 +19,8 @@ router.use(authController.protect)
 
 router
   .route('/')
-  .get(userController.getAllUser)
+  // .get(userController.getAllUser)
   .delete(userController.deleteUser)
-
-router
-  .route('/:id')
   .get(userController.getUser)
   .patch(
     userController.uploadProfilePhoto,
