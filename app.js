@@ -15,12 +15,12 @@ const app = express()
 
 app.use(express.static('public'))
 
-const corsOptions = {
-  origin: process.env.VITE_BASE_URL,
-  optionsSuccessStatus: 200,
-}
-app.options('*', cors(corsOptions))
-app.use(cors(corsOptions))
+// const corsOptions = {
+//   origin: process.env.VITE_BASE_URL,
+//   optionsSuccessStatus: 200,
+// }
+// app.options('*', cors(corsOptions))
+// app.use(cors(corsOptions))
 // Global middlewares
 
 app.use(helmet())
