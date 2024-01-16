@@ -20,7 +20,7 @@ app.use(express.static('public'))
 //   optionsSuccessStatus: 200,
 // }
 // app.options('*', cors(corsOptions))
-// app.use(cors(corsOptions))
+app.use(cors())
 // Global middlewares
 
 app.use(helmet())
