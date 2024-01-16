@@ -16,7 +16,7 @@ const app = express()
 app.use(express.static('public'))
 
 const corsOptions = {
-  origin: 'http://localhost:5173',
+  origin: process.env.VITE_BASE_URL,
   optionsSuccessStatus: 200,
 }
 
