@@ -20,17 +20,6 @@ const createSendToken = async (statusCode, id, res) => {
 
   const jwtHashToken = crypto.createHash('sha256').update(token).digest('hex')
 
-  const cookieOptions = {
-    expires: new Date(
-      Date.now() + process.env.COOKIE_EXPIRES * 24 * 60 * 60 * 1000
-    ),
-    httpOnly: true,
-  }
-  if (process.env.NODE_ENV === 'production') {
-    cookieOptions.secure = true
-  }
-  res.cookie('jwt', token, cookieOptions)
-
   const user = await User.findByIdAndUpdate(id, {
     verificationToken: jwtHashToken,
   })
@@ -76,7 +65,6 @@ exports.login = catchAsync(async (req, res, next) => {
 
 exports.protect = catchAsync(async (req, res, next) => {
   let token
-  // checking if token is there
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
@@ -94,13 +82,11 @@ exports.protect = catchAsync(async (req, res, next) => {
     token,
     process.env.JWT_SECRET
   )
-
-  // checking user still exists
-
   const currUser = await User.findOne({
     _id: decodedToken.id,
     verificationToken: jwtHashToken,
   })
+
   if (!currUser) {
     return next(
       new AppError(
@@ -109,8 +95,7 @@ exports.protect = catchAsync(async (req, res, next) => {
       )
     )
   }
-  // checking password modification after jwt token
-  if (currUser.changedPasswordAfter(decodedToken.iat)) {
+  if (currUser.changedPasswordAfter(token.iat)) {
     return next(
       new AppError(401, 'Recently password change detected. Please login again')
     )
@@ -123,6 +108,7 @@ exports.logout = catchAsync(async (req, res, next) => {
   const currUser = req.user
   currUser.verificationToken = undefined
   await currUser.save({ validateBeforeSave: false })
+
   res.status(204).json({
     status: 'success',
   })
@@ -164,6 +150,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
 exports.resetPassword = catchAsync(async (req, res, next) => {
   // get user based on token
+
   const hashedToken = crypto
     .createHash('sha256')
     .update(req.params.token)

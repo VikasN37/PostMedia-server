@@ -4,17 +4,6 @@ const catchAsync = require('../utils/catchAsync')
 const multer = require('multer')
 const sharp = require('sharp')
 
-// const multerStorage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, 'profilePhotos')
-//   },
-
-//   filename: (req, file, cb) => {
-//     const extension = file.mimetype.split('/')[1]
-//     cb(null, `user-${req.user.id}-${Date.now()}.${extension}`)
-//   },
-// })
-
 const multerStorage = multer.memoryStorage()
 
 const multerFilter = (req, file, cb) => {

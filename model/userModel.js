@@ -50,7 +50,6 @@ const userSchema = new mongoose.Schema(
 
     passwordChangedAt: {
       type: Date,
-      default: Date.now(),
     },
     passwordResetToken: { type: String },
     passwordResetExpires: Date,
@@ -60,6 +59,14 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
     posts: [{ type: mongoose.Schema.ObjectId, ref: 'Post' }],
+    totalPosts: {
+      type: Number,
+      default: 0,
+    },
+    likedPosts: {
+      type: Number,
+      default: 0,
+    },
   },
 
   {
@@ -73,6 +80,10 @@ userSchema.pre('save', async function (next) {
 
   this.password = await bcrypt.hash(this.password, 12)
 
+  let date = new Date()
+  date.setHours(date.getHours() + 5)
+  date.setMinutes(date.getMinutes() + 30)
+  this.passwordChangedAt = date
   this.confirmPassword = undefined
   next()
 })
@@ -80,7 +91,10 @@ userSchema.pre('save', async function (next) {
 userSchema.pre('save', function (next) {
   if (!this.isModified('password') || this.isNew) return next()
 
-  this.passwordChangedAt = Date.now() - 1000
+  let date = new Date()
+  date.setHours(date.getHours() + 5)
+  date.setMinutes(date.getMinutes() + 29)
+  this.passwordChangedAt = date
   next()
 })
 
@@ -120,7 +134,11 @@ userSchema.methods.createPasswordResetToken = function () {
     .update(resetToken)
     .digest('hex')
 
-  this.passwordResetExpires = Date.now() + 10 * 60 * 1000
+  let date = new Date()
+  date.setHours(date.getHours() + 5)
+  date.setMinutes(date.getMinutes() + 40)
+
+  this.passwordResetExpires = date
 
   return resetToken
 }

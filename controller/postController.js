@@ -26,13 +26,13 @@ exports.resizeImage = catchAsync(async (req, res, next) => {
   if (!req.file) {
     return next()
   }
-  console.log('resizing')
+
   req.file.filename = `post-${req.user.id}-${Date.now()}.jpeg`
 
   await sharp(req.file.buffer)
     .resize({
       width: 600,
-      height: 700,
+      height: 650,
       fit: sharp.fit.fill,
     })
     .toFormat('jpeg')
@@ -42,31 +42,9 @@ exports.resizeImage = catchAsync(async (req, res, next) => {
   next()
 })
 
-// exports.getAllPosts = catchAsync(async (req, res) => {
-//   const features = new APIfeatures(Post.find(), req.query).sort()
-//   const posts = await features.query
-//   res.status(200).json({
-//     status: 'success',
-//     data: {
-//       posts,
-//     },
-//   })
-// })
-// db.posts.find({location:{$regex: "A", $options:'i'} })
-// db.posts.find({location:{$regex: /^A/ } })
-
 exports.getPosts = catchAsync(async (req, res, next) => {
   let { posts } = req.user
 
-  if (req.query.searchString) {
-    const searchedPosts = await Post.find({
-      location: {
-        $regex: new RegExp(`(?:^|\\W)${req.query.searchString}`, 'i'),
-      },
-    })
-  }
-
-  console.log(posts)
   res.status(200).json({
     status: 'success',
     data: {
@@ -77,7 +55,6 @@ exports.getPosts = catchAsync(async (req, res, next) => {
 
 exports.createPost = catchAsync(async (req, res, next) => {
   const user = req.user
-  console.log('Entered createPost')
 
   const filteredBody = {
     location: req.body.location,
@@ -86,13 +63,11 @@ exports.createPost = catchAsync(async (req, res, next) => {
 
   if (req.file) {
     filteredBody.image = req.file.filename
-    console.log(req.file)
   }
-
-  console.log(filteredBody)
 
   const newPost = await Post.create(filteredBody)
   user.posts.unshift(newPost)
+  user.totalPosts = user.totalPosts + 1
   await user.save({ validateBeforeSave: false })
 
   res.status(201).json({
@@ -104,20 +79,25 @@ exports.createPost = catchAsync(async (req, res, next) => {
 })
 
 exports.updatePost = catchAsync(async (req, res, next) => {
-  const filteredBody = filterObj(req.body, 'location', 'caption', 'liked')
-
-  const post = await Post.findByIdAndUpdate(req.params.id, filteredBody, {
+  const user = req.user
+  const post = await Post.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
   })
   if (!post) {
     return next(new AppError(404, 'No post found with given id'))
   }
+  if (req.body.liked === false) {
+    user.likedPosts = user.likedPosts - 1
+  } else if (req.body.liked === true) {
+    user.likedPosts = user.likedPosts + 1
+  }
 
+  await user.save({ validateBeforeSave: false })
   res.status(200).json({
     status: 'success',
     data: {
-      posts: post,
+      // posts: post,
     },
   })
 })
@@ -129,11 +109,15 @@ exports.deletePost = catchAsync(async (req, res, next) => {
   }
   const user = req.user
 
+  if (post.liked === true) {
+    user.likedPosts = user.likedPosts - 1
+  }
   const updatedPosts = user.posts.filter(
     (el) => el._id.toString() !== post._id.toString()
   )
 
   user.posts = updatedPosts
+  user.totalPosts = user.totalPosts - 1
 
   await user.save({ validateBeforeSave: false })
   res.status(204).json({
