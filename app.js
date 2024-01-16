@@ -22,7 +22,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions))
 // Global middlewares
-// for security headers
+
 app.use(helmet())
 
 //  morgan for logging requests
