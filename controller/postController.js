@@ -28,7 +28,7 @@ exports.resizeImage = catchAsync(async (req, res, next) => {
   }
 
   req.file.filename = `post-${req.user.id}-${Date.now()}.jpeg`
-  console.log(req.file)
+
   await sharp(req.file.buffer)
     .resize({
       width: 600,
