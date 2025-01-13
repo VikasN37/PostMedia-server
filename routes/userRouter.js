@@ -24,6 +24,7 @@ router
   .get(userController.getUser)
   .patch(
     userController.uploadProfilePhoto,
+    userController.uploadToCloudinary,
     userController.resizeImage,
     userController.updateUser
   )

@@ -13,11 +13,12 @@ module.exports = class Email {
   newTransport() {
     if (process.env.NODE_ENV === 'production') {
       return nodemailer.createTransport({
-        host: process.env.ZOHO_HOST,
-        port: process.env.ZOHO_PORT,
+        service: process.env.EMAIL_SERVICE,
+        secure: true,
+        port: process.env.EMAIL_PORT,
         auth: {
-          user: process.env.ZOHO_USERNAME,
-          pass: process.env.ZOHO_PASSWORD,
+          user: process.env.EMAIL_USERNAME,
+          pass: process.env.EMAIL_PASSWORD,
         },
       })
     }

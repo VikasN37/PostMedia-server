@@ -11,6 +11,7 @@ router
   .post(
     // authController.protect,
     postController.uploadPhoto,
+    postController.uploadToCloudinary,
     postController.resizeImage,
     postController.createPost
   )

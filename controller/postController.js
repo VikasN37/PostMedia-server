@@ -3,9 +3,18 @@ const APIfeatures = require('../utils/apiFeatures')
 const catchAsync = require('../utils/catchAsync')
 const AppError = require('../utils/appError')
 const User = require('../model/userModel')
+const { Readable } = require('stream')
 
 const multer = require('multer')
 const sharp = require('sharp')
+const cloudinary = require('cloudinary').v2
+
+cloudinary.config({
+  cloud_name: 'dbxn0bwcn',
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true,
+})
 
 const multerStorage = multer.memoryStorage()
 
@@ -22,6 +31,27 @@ const upload = multer({
 })
 exports.uploadPhoto = upload.single('image')
 
+// Middleware to upload to Cloudinary
+exports.uploadToCloudinary = catchAsync(async (req, res, next) => {
+  if (!req.file) return next() // Skip if no file
+
+  const bufferStream = Readable.from(req.file.buffer)
+
+  const result = await new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder: 'postPhotos' },
+      (error, result) => {
+        if (error) reject(error)
+        else resolve(result)
+      }
+    )
+    bufferStream.pipe(uploadStream)
+  })
+
+  req.file.cloudinaryUrl = result.secure_url // Attach Cloudinary URL to req.file
+  next()
+})
+
 exports.resizeImage = catchAsync(async (req, res, next) => {
   if (!req.file) {
     return next()
@@ -37,7 +67,7 @@ exports.resizeImage = catchAsync(async (req, res, next) => {
     })
     .toFormat('jpeg')
     .jpeg({ quality: 100 })
-    .toFile(`public/postPhotos/${req.file.filename}`)
+    .toBuffer()
 
   next()
 })
@@ -61,8 +91,8 @@ exports.createPost = catchAsync(async (req, res, next) => {
     caption: req.body.caption,
   }
 
-  if (req.file) {
-    filteredBody.image = req.file.filename
+  if (req.file && req.file.cloudinaryUrl) {
+    filteredBody.image = req.file.cloudinaryUrl
   }
 
   const newPost = await Post.create(filteredBody)
