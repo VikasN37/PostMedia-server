@@ -13,12 +13,12 @@ module.exports = class Email {
   newTransport() {
     if (process.env.NODE_ENV === 'production') {
       return nodemailer.createTransport({
-        service: process.env.EMAIL_SERVICE,
+        service: process.env.NODEMAILER_SERVICE,
         secure: true,
-        port: process.env.EMAIL_PORT,
+        port: process.env.NODEMAILER_PORT,
         auth: {
-          user: process.env.EMAIL_USERNAME,
-          pass: process.env.EMAIL_PASSWORD,
+          user: process.env.NODEMAILER_USERNAME,
+          pass: process.env.NODEMAILER_PASSWORD,
         },
       })
     }
