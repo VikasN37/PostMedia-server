@@ -33,10 +33,10 @@ if (process.env.NODE_ENV === 'development') {
 //  for reading JSON from body
 app.use(express.json())
 
-// for query injection attacks
+// for query injection attacks like : email : {$gt : " "}
 app.use(mongoSanitize())
 
-// for xss
+// for xss -> for malicious HTML code with JS
 app.use(xss())
 
 // for parameter pollution

@@ -28,9 +28,8 @@ const upload = multer({
 })
 exports.uploadProfilePhoto = upload.single('profilePhoto')
 
-// Middleware to upload to Cloudinary
 exports.uploadToCloudinary = catchAsync(async (req, res, next) => {
-  if (!req.file) return next() // Skip if no file
+  if (!req.file) return next()
 
   const bufferStream = Readable.from(req.file.buffer)
 
