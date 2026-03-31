@@ -42,7 +42,6 @@ exports.signup = catchAsync(async (req, res) => {
   })
 
   // await new Email(newUser).sendWelcome()
-s
   createSendToken(201, newUser.id, res)
 })
 
